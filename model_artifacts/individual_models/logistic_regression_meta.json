@@ -1,0 +1,28 @@
+{
+  "target": "HighSatisfaction",
+  "drop_cols": [
+    "CustomerID"
+  ],
+  "num_features": [
+    "Age",
+    "Income",
+    "AverageSpend",
+    "GroupSize",
+    "OnlineReservation",
+    "DeliveryOrder",
+    "LoyaltyProgramMember",
+    "WaitTime",
+    "ServiceRating",
+    "FoodRating",
+    "AmbianceRating"
+  ],
+  "cat_features": [
+    "Gender",
+    "VisitFrequency",
+    "PreferredCuisine",
+    "TimeOfVisit",
+    "DiningOccasion",
+    "MealType"
+  ],
+  "model_name": "logistic_regression"
+}

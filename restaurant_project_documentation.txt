@@ -1,0 +1,228 @@
+Title: Comparative Evaluation of Predictive Models for Restaurant Customer Satisfaction Optimization
+
+Student Name: [Your Name]
+Course/Section: [Your Course/Section]
+School: [Your School]
+Email: [Your Email]
+Date: March 2026
+
+Abstract
+This project develops and compares predictive analytics models to identify customers with high satisfaction in a restaurant context. Using the restaurant_customer_satisfaction.csv dataset (1,500 customer records), the study formulates a binary classification problem where HighSatisfaction (1 = satisfied, 0 = not satisfied) is predicted from demographic, behavioral, service, and transactional features. Initial data analysis shows complete records with no missing values and a class imbalance (13.4% high satisfaction), indicating the need for imbalance-aware modeling and evaluation. A human-implemented baseline (Logistic Regression) is compared against an AI-recommended model (Random Forest), then improved through refinement (gradient boosting/XGBoost-style tuning and threshold optimization). Results are interpreted through classification metrics, confusion matrix heatmaps, ROC-AUC, and feature-importance analysis. The final output supports actionable business decisions such as reducing wait times, strengthening loyalty engagement, and improving service/food experience for customer segments with lower predicted satisfaction.
+
+Keywords
+Predictive analytics, customer satisfaction, binary classification, supervised machine learning, logistic regression, random forest, model refinement, business optimization, restaurant analytics, feature importance
+
+1. Business Problem and Project Objectives
+Restaurants need consistent customer satisfaction to increase repeat visits, positive reviews, and long-term profitability. In practice, satisfaction varies due to service quality, waiting duration, dining context, customer profile, and order channel behavior. Without a predictive system, management decisions are reactive and based on general assumptions rather than evidence.
+
+The current business challenge is to proactively identify customer profiles and service scenarios associated with high or low satisfaction. This allows operations to intervene early (for example, reducing wait time for at-risk groups, improving reservation handling, or assigning experienced staff during high-impact dining occasions).
+
+1.1 Objectives
+1.1.1 To analyze the restaurant customer dataset and define a supervised predictive analytics task that supports satisfaction improvement.
+1.1.2 To build a human-selected predictive model and assess its effectiveness for business decision support.
+1.1.3 To evaluate an AI-recommended predictive model and compare it with the human baseline in terms of performance and interpretability.
+1.1.4 To refine model design (feature handling, balancing strategy, hyperparameters, and threshold tuning) to improve predictive quality for operational use.
+1.1.5 To extract business insights and recommend deployment steps for a practical decision-support workflow.
+
+2. Dataset Understanding and Problem Formulation
+
+2.1 Dataset Overview
+Dataset file: restaurant_customer_satisfaction.csv
+Total records: 1,500
+Total columns: 19
+Target variable: HighSatisfaction
+
+Feature groups:
+- Customer profile: CustomerID, Age, Gender, Income
+- Behavioral/visit patterns: VisitFrequency, TimeOfVisit, GroupSize, DiningOccasion, MealType
+- Spending/preferences: AverageSpend, PreferredCuisine
+- Channel/engagement: OnlineReservation, DeliveryOrder, LoyaltyProgramMember
+- Service experience: WaitTime, ServiceRating, FoodRating, AmbianceRating
+
+Dataset quality observations:
+- No missing values in all columns.
+- Numerical ranges are realistic and stable (e.g., Age 18-69, WaitTime 0-60 mins, rating scales 1-5).
+- IQR-based checks indicate no severe outliers in numeric variables.
+
+Business relevance:
+The dataset combines controllable restaurant factors (wait time, service quality, reservation experience) and customer behavior (visit frequency, meal type, occasion), making it suitable for operational optimization and targeted interventions.
+
+2.2 Target Variable and Learning Task Definition
+Target: HighSatisfaction (binary)
+- 1 = highly satisfied customer
+- 0 = not highly satisfied customer
+
+Learning task: Binary classification
+Justification:
+- The outcome is categorical and decision-oriented.
+- Business actions (intervene vs maintain current strategy) align naturally with classification outputs.
+- Probability scores from models can be used for risk-based prioritization.
+
+2.3 Initial Data Quality Assessment
+Class distribution:
+- HighSatisfaction = 1: 201 records (13.4%)
+- HighSatisfaction = 0: 1,299 records (86.6%)
+
+Implications:
+- Strong class imbalance can bias models toward majority-class predictions.
+- Accuracy alone may be misleading; recall, precision, F1-score, PR-AUC, and ROC-AUC are required.
+- Class weighting, resampling, and threshold tuning are necessary to capture the minority class effectively.
+
+Initial relationship signals (from exploratory analysis):
+- Positive association with HighSatisfaction: OnlineReservation, DeliveryOrder, LoyaltyProgramMember, FoodRating, ServiceRating, Income
+- Negative association with HighSatisfaction: WaitTime, GroupSize
+- High-satisfaction rates are relatively higher for Weekly visitors, Dine-in customers, and Celebration occasions.
+
+3. Data Preparation and Feature Engineering
+Preprocessing pipeline:
+1) Drop CustomerID from modeling features (identifier, not causal behavioral driver).
+2) Split features into numerical and categorical groups.
+3) Numerical processing: median imputation + standard scaling (for linear model stability).
+4) Categorical processing: one-hot encoding with unknown-category handling.
+5) Train-test split with stratification by target to preserve imbalance ratio.
+
+Imbalance-aware strategies:
+- Use class_weight='balanced' for Logistic Regression and Random Forest.
+- Use scale_pos_weight (or equivalent) for boosted model.
+- Optional threshold optimization based on F1 or business cost ratio.
+
+Feature engineering additions:
+- Optional derived bins for WaitTime (short/medium/long) for managerial readability.
+- Interaction-ready encoded variables retained via one-hot representation.
+- Probability calibration and threshold management for deployment flexibility.
+
+4. Predictive Modeling Approaches
+
+4.1 Human-Implemented Model
+Model: Logistic Regression (with class balancing)
+
+Rationale:
+- Interpretable and transparent baseline suitable for business communication.
+- Robust with one-hot encoded mixed-type inputs.
+- Provides probability outputs for flexible threshold selection.
+
+Strengths:
+- Easy to explain to non-technical stakeholders.
+- Fast training and low computational cost.
+- Coefficients can indicate directional feature effects.
+
+Limitations:
+- Assumes mostly linear decision boundary in transformed feature space.
+- May underfit complex non-linear interactions (e.g., service-quality patterns across dining occasions).
+
+4.2 AI-Recommended Predictive Model
+Model: Random Forest Classifier
+
+AI-style reasoning summary:
+- Mixed categorical/numeric data and potential non-linear relationships are well handled by ensemble trees.
+- Random Forest generally improves recall and robustness under feature interactions.
+- Feature importance extraction supports explainability for managerial decisions.
+
+Suitability assessment:
+- Strong candidate for improved classification quality over linear baseline.
+- More complex than Logistic Regression but still practical for deployment.
+- Requires probability threshold tuning due to class imbalance.
+
+5. Model Comparison and Initial Evaluation
+Comparison dimensions:
+- Predictive quality: F1, recall for high-satisfaction class, ROC-AUC, PR-AUC
+- Interpretability: Logistic Regression is more direct; Random Forest offers importance rankings but less direct coefficient interpretation.
+- Complexity and maintainability: Logistic is lightweight; Random Forest has higher resource and tuning needs.
+- Business usability: Both can support probability-based actions; logistic is simpler to communicate, while random forest may detect richer behavior patterns.
+
+Expected early comparison outcome:
+- Logistic Regression provides strong baseline transparency but moderate minority-class capture.
+- Random Forest is expected to improve minority-class detection and overall discriminatory ability.
+
+6. Model Refinement and Performance Improvement
+Refinement model:
+- Tuned boosted-tree model (XGBoost-style or Gradient Boosting refinement with imbalance handling).
+
+Improvement strategies:
+1) Hyperparameter tuning via cross-validated randomized/grid search.
+2) Class imbalance compensation (scale_pos_weight or weighted objective).
+3) Threshold optimization against business objective (maximize minority recall at acceptable precision).
+4) Calibration checks to improve probability quality for operational decisions.
+5) Feature-importance review to remove noisy predictors if needed.
+
+Why refinement is necessary:
+- Initial models establish baseline and non-linear improvements, but refined tuning is required to optimize minority detection and decision reliability.
+- Restaurant operations benefit most when probabilities are stable and actionable, not just accurate.
+
+7. Evaluation Metrics and Results
+Primary metrics:
+- Precision (positive class): quality of positive predictions
+- Recall (positive class): ability to detect truly satisfied customers
+- F1-score: balance between precision and recall
+- ROC-AUC: ranking quality across thresholds
+- PR-AUC: more informative under class imbalance
+- Confusion matrix heatmap: operational error analysis (false positives/false negatives)
+
+Result interpretation framework:
+- High false negatives mean missed opportunities to identify satisfied customer drivers.
+- High false positives may cause resource over-allocation to low-impact interventions.
+- Final threshold should reflect business costs (e.g., missed satisfied customer signal vs unnecessary campaign action).
+
+Note on final numeric outputs:
+Final metric values are generated when running the provided Google Colab code. The notebook prints side-by-side metrics for Human model, AI-recommended model, and Refined model, and saves all confusion-matrix heatmaps for reporting.
+
+8. Final Model Selection and Feature Importance
+
+8.1 Final Model Selection
+Selection rule:
+- Choose the refined model if it outperforms both baseline models on minority-class F1/Recall while maintaining acceptable precision and stable ROC-AUC.
+- If performance is close, prefer the simpler model with better transparency and lower deployment cost.
+
+Business-aligned decision criterion:
+- Priority is reliable detection and actionable probability segmentation for service optimization.
+- Final choice must balance predictive gain and operational maintainability.
+
+8.2 Feature Importance
+From data relationships and expected model behavior, the most influential features are likely:
+- WaitTime (negative effect): longer waiting is associated with lower satisfaction.
+- FoodRating and ServiceRating (positive): quality dimensions strongly linked to satisfaction.
+- LoyaltyProgramMember, OnlineReservation, DeliveryOrder (positive): engagement and convenience signals.
+- DiningOccasion and MealType: contextual behavior differences (Celebration and Dine-in show higher rates).
+- VisitFrequency: Weekly visitors tend to exhibit stronger positive outcomes.
+
+Business interpretation:
+- Operational speed and service quality remain the primary levers.
+- Digital convenience channels and loyalty engagement support higher satisfaction likelihood.
+- Segment-specific strategies (occasion- and meal-type-aware) can optimize interventions.
+
+9. Business Insights, Risks, and Model Deployment
+Key insights:
+1) Wait-time control is a direct operational lever for satisfaction uplift.
+2) Quality ratings (food/service/ambiance) should be tracked continuously and tied to staff coaching.
+3) Loyalty and reservation channels are associated with better outcomes; these programs should be expanded strategically.
+4) Celebration and dine-in contexts show higher success rates, suggesting tailored service design per occasion.
+
+Risks and limitations:
+- Imbalanced target may still affect prediction stability if operational data drifts.
+- Synthetic or historical patterns may not fully capture future seasonality/events.
+- Satisfaction may depend on unobserved variables (staff workload, promotions, competitor effects).
+- Over-reliance on model outputs without human context can produce suboptimal decisions.
+
+Deployment approach:
+- Train and validate model in Colab, then export artifacts (model pipeline, threshold, feature metadata).
+- Deploy as a lightweight scoring script/API in VS Code environment.
+- Input: current customer/session data.
+- Output: probability of high satisfaction + class label + risk band.
+- Integrate into manager dashboard for shift-level and segment-level decisions.
+- Establish monitoring: monthly drift checks, metric tracking, and retraining triggers.
+
+10. Conclusion and Recommendation
+This project demonstrates a structured predictive analytics workflow for restaurant customer satisfaction classification. The dataset supports a practical binary prediction task with strong business relevance. Initial analysis reveals clean data quality but significant class imbalance, requiring imbalance-aware modeling and careful metric selection. A transparent human baseline (Logistic Regression), a stronger non-linear AI-recommended model (Random Forest), and a refined tuned model create a robust comparative framework.
+
+Recommendation:
+- Use the refined model as primary decision support if it delivers superior minority-class performance and stable ROC/PR behavior after threshold tuning.
+- Keep Logistic Regression as an interpretable benchmark for governance and communication.
+- Combine AI-driven predictions with manager judgment and ongoing operational monitoring.
+- Focus intervention policies on wait-time reduction, service/food quality improvement, and engagement-channel expansion (loyalty and reservations).
+
+References
+[1] Kuhn, M., & Johnson, K. (2013). Applied Predictive Modeling. Springer.
+[2] James, G., Witten, D., Hastie, T., & Tibshirani, R. (2021). An Introduction to Statistical Learning (2nd ed.). Springer.
+[3] Molnar, C. (2022). Interpretable Machine Learning (2nd ed.). Leanpub.
+[4] Sculley, D., et al. (2015). Hidden Technical Debt in Machine Learning Systems. NeurIPS.
+[5] Pedregosa, F., et al. (2011). Scikit-learn: Machine Learning in Python. Journal of Machine Learning Research.
