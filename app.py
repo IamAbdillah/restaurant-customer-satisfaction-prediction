@@ -80,6 +80,19 @@ def run_prediction(model_key: str, row: dict) -> tuple:
     return prob, pred, threshold
 
 
+def run_batch_predictions(model_key: str, df: pd.DataFrame) -> tuple:
+    """Run predictions on a DataFrame. Returns (probs, preds, threshold)."""
+    model, meta, threshold = load_model_bundle(model_key)
+    expected_cols = meta.get("num_features", []) + meta.get("cat_features", [])
+    for col in expected_cols:
+        if col not in df.columns:
+            df[col] = None
+    input_df = df[expected_cols]
+    probs = model.predict_proba(input_df)[:, 1]
+    preds = (probs >= threshold).astype(int)
+    return probs, preds, threshold
+
+
 def render_dashboard(db_available: bool):
     """Dashboard overview with key metrics."""
     st.subheader("📊 Dashboard Overview")
@@ -218,6 +231,77 @@ def render_predict(db_available: bool, model_choice: str):
             st.error(f"Model files not found. {e}")
         except Exception as e:
             st.error(f"Prediction failed: {e}")
+
+
+def render_batch_predict(model_choice: str):
+    """Batch CSV prediction module."""
+    st.subheader("📤 Batch CSV Prediction")
+    st.markdown("Upload a CSV file containing customer data to generate satisfaction predictions in bulk.")
+
+    # Model selection
+    st.markdown("**Model**")
+    batch_model = st.selectbox(
+        "Choose model for batch prediction",
+        options=list(MODEL_OPTIONS.keys()),
+        format_func=lambda k: MODEL_OPTIONS[k],
+        index=list(MODEL_OPTIONS.keys()).index(model_choice) if model_choice in MODEL_OPTIONS else 0,
+        label_visibility="collapsed",
+    )
+
+    # Required columns expander
+    required_cols = [
+        "Age", "Gender", "Income", "VisitFrequency", "AverageSpend", "PreferredCuisine",
+        "TimeOfVisit", "GroupSize", "DiningOccasion", "MealType", "OnlineReservation",
+        "DeliveryOrder", "LoyaltyProgramMember", "WaitTime", "ServiceRating",
+        "FoodRating", "AmbianceRating",
+    ]
+    with st.expander("> Required CSV columns"):
+        st.markdown(", ".join(f"`{c}`" for c in required_cols))
+        st.caption("Column names must match exactly. CustomerID is optional and will be ignored.")
+
+    # File upload
+    st.markdown("**Upload CSV**")
+    uploaded = st.file_uploader(
+        "Drag and drop file here",
+        type=["csv"],
+        help="Limit 200MB per file • CSV",
+        label_visibility="collapsed",
+    )
+
+    if uploaded:
+        try:
+            df = pd.read_csv(uploaded)
+            st.success(f"Loaded {len(df):,} rows, {len(df.columns)} columns.")
+
+            # Check for required columns
+            missing = [c for c in required_cols if c not in df.columns]
+            if missing:
+                st.error(f"Missing required columns: {', '.join(missing)}")
+            else:
+                if st.button("🔮 Run Batch Prediction", key="batch_predict_btn", type="primary"):
+                    with st.spinner("Running predictions..."):
+                        probs, preds, _ = run_batch_predictions(batch_model, df.copy())
+
+                    result_df = df.copy()
+                    result_df["predicted_probability"] = probs
+                    result_df["predicted_class"] = preds
+                    result_df["predicted_satisfaction"] = result_df["predicted_class"].map({1: "Highly Satisfied", 0: "Not Highly Satisfied"})
+
+                    st.success(f"Predictions complete! {int(preds.sum()):,} highly satisfied, {int((preds == 0).sum()):,} not highly satisfied.")
+
+                    st.dataframe(result_df, use_container_width=True, hide_index=True)
+
+                    # Download button
+                    csv_out = result_df.to_csv(index=False)
+                    st.download_button(
+                        "Download results (CSV)",
+                        csv_out,
+                        file_name="satisfaction_predictions.csv",
+                        mime="text/csv",
+                        key="batch_download",
+                    )
+        except Exception as e:
+            st.error(f"Error processing file: {e}")
 
 
 def render_history(db_available: bool):
@@ -409,6 +493,7 @@ def main():
     nav_items = [
         ("Dashboard", "Dashboard"),
         ("Predict", "Single Prediction"),
+        ("Batch", "Batch Prediction"),
         ("History", "Prediction History"),
         ("About", "About"),
     ]
@@ -450,6 +535,8 @@ def main():
         render_dashboard(db_available)
     elif st.session_state.page == "Predict":
         render_predict(db_available, model_choice)
+    elif st.session_state.page == "Batch":
+        render_batch_predict(model_choice)
     elif st.session_state.page == "History":
         render_history(db_available)
     else:
