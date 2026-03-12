@@ -325,7 +325,7 @@ def inject_custom_css():
         padding: 0.6rem 1rem !important;
         border-radius: 0.5rem !important;
         color: #7dd3fc !important;
-    }
+        margin-top:0px;}
     [data-testid="stSidebar"] button[kind="primary"]:hover {
         background: rgba(56, 189, 248, 0.15) !important;
         border: 1px solid #38bdf8 !important;
@@ -405,9 +405,7 @@ def main():
     if "page" not in st.session_state:
         st.session_state.page = "Dashboard"
 
-    # Sidebar - anchor-style navigation
-    st.sidebar.markdown("---")
-
+    # Sidebar - navigation at top
     nav_items = [
         ("Dashboard", "Dashboard"),
         ("Predict", "Single Prediction"),
